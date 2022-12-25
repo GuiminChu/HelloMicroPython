@@ -3,7 +3,9 @@ import time
 
 
 class LED:
+    # 对应模块蓝色led
     pin2 = Pin(2, Pin.OUT)
+    # 对应模块针脚D4
     pin4 = Pin(4, Pin.OUT)
 
     def __init__(self, pin: int):
