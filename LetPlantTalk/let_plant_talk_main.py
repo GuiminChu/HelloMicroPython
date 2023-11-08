@@ -7,7 +7,6 @@ import json
 from led import LED
 from ldr import LDR
 import yx5300
-import micropython
 
 MQTT_SERVER = '223.99.228.240'
 MQTT_PORT = 11883
@@ -26,9 +25,6 @@ soil_moisture = 0
 
 # initialize an LDR
 ldr = LDR(35)
-
-# 是否是夜晚
-is_night = False
 
 vspi = SPI(2, baudrate=80000000, polarity=0, phase=0, bits=8, firstbit=0, sck=Pin(18), mosi=Pin(23), miso=Pin(19))
 dc = Pin(22)  # data/command
@@ -77,7 +73,6 @@ def read_dht_sensor():
 
 def mqtt_heartbeat_timer(my_timer: Timer):
     global soil_moisture
-    global is_night
 
     try:
         # 测量土壤湿度
@@ -114,6 +109,14 @@ def mqtt_heartbeat_timer(my_timer: Timer):
         print(j1)
         mqtt_client.publish(MQTT_TOPIC_SYS_REPORT, j1)
         LED.pin2_blink_on()
+
+        # 显示 土壤湿度、温湿度、光照强度
+        display.fill(0)
+        display.text('S: ' + str(soil_moisture), 0, 0)
+        display.text('L: ' + str(ldr_value), 0, 10)
+        display.text('T: ' + str(temperature) + ' \'C', 0, 20)
+        display.text('H: ' + str(humidity) + ' %rh', 0, 30)
+        display.show()
     except OSError as e:
         print(e)
         my_timer.deinit()
@@ -279,7 +282,6 @@ if is_wifi_connected:
 
     while True:
         try:
-            micropython.mem_info()
             mqtt_client.check_msg()
         except OSError as e:
             print(e)

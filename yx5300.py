@@ -24,6 +24,24 @@ def cmd_no_need_water():
     return send_cmd(cmd, feedback, dat)
 
 
+def cmd_good_morning():
+    """ 早上好 """
+
+    cmd = 0x0F
+    feedback = 0x01
+    dat = [0x03, 0x04]
+    return send_cmd(cmd, feedback, dat)
+
+
+def cmd_good_night():
+    """ 晚上好 """
+
+    cmd = 0x0F
+    feedback = 0x01
+    dat = [0x03, 0x05]
+    return send_cmd(cmd, feedback, dat)
+
+
 def send_cmd(cmd, feedback, dat):
     # 版本号、长度、cmd、是否反馈、数据
     send_buf = [0xFF, 0x06, cmd, feedback]
@@ -34,6 +52,7 @@ def send_cmd(cmd, feedback, dat):
     send_buf.append(checksum_low)
     send_buf.insert(0, 0x7E)
     send_buf.append(0xEF)
+    print(f'uart_cmd: {bytes(send_buf).hex().upper()}')
     return send_buf
 
 

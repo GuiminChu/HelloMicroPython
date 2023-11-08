@@ -1,5 +1,6 @@
 from machine import ADC, Pin
 
+# https://github.com/artem-smotrakov/esp32-ldr
 
 class LDR:
     """This class read a value from a light dependent resistor (LDR)"""
