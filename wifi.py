@@ -9,8 +9,8 @@ class Wifi:
     def do_connect(cls) -> bool:
         if not cls.wifi.isconnected():
             cls.wifi.active(True)
-            cls.wifi.connect("qnaiot", "qingniao2022")
-            # cls.wifi.connect("Xiaomi_F285", "STC12C5A")
+            # cls.wifi.connect("qnaiot", "qingniao2022")
+            cls.wifi.connect("Xiaomi_F285", "STC12C5A")
 
             for i in range(20):
                 print('等待连接...{}'.format(i))

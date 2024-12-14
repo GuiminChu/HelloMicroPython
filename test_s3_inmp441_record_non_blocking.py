@@ -38,6 +38,35 @@ silence_duration = 1.2  # 静音持续时间（秒）
 
 recording = False  # 是否在录音
 
+last_active_time = time.ticks_ms()
+
+
+# 事件回调函数
+def i2s_callback(data):
+    global recording, last_active_time
+
+    # 计算当前帧是否为静音
+    audio_data = np.frombuffer(data, dtype=np.int16)
+    temp = np.max(audio_data)
+    print(temp)
+    if temp > silence_threshold:
+        if not recording:
+            print("检测到声音，开始录音...")
+            recording = True
+
+        last_active_time = time.ticks_ms()
+        print(f"last_active_time: {last_active_time}")
+
+    if recording:
+        recorded_data.extend(read_buffer[:read_len])
+
+        if time.ticks_diff(time.ticks_ms(), last_active_time) > silence_duration * 1000:
+            print("检测到静音，录音结束。")
+            recording = False
+            print(f"current_time: {time.ticks_ms()}")
+            save_wav(recorded_data)
+
+
 audio_in = I2S(
     0,
     sck=sck_pin,
@@ -50,49 +79,39 @@ audio_in = I2S(
     ibuf=20000  # 缓冲区大小
 )
 
+# 注册事件与回调
+audio_in.irq(i2s_callback)
+
+
+def save_wav(complete_data):
+    """
+    保存录音为 WAV 文件
+    :param audio_in:
+    :return:
+    """
+
+    if complete_data:
+        print("正在保存 WAV 文件...")
+        wav_header = generate_wav_header(sample_rate, bits_per_sample, num_channels, len(complete_data))
+
+        file_name = "recording.wav"
+        with open(file_name, "wb") as wav_file:
+            wav_file.write(wav_header)
+            wav_file.write(complete_data)
+
+        print(f"WAV 文件已保存: {file_name}")
+    else:
+        print("未检测到有效音频，未保存文件。")
+
+
 print("等待音频输入...")
-last_active_time = time.ticks_ms()
 
 while True:
     try:
         # 从 I2S 读取数据
         read_len = audio_in.readinto(read_buffer)
-        if read_len:
-            # 计算当前帧是否为静音
-            audio_data = np.frombuffer(read_buffer, dtype=np.int16)
-            temp = np.max(audio_data)
-            print(temp)
-            if temp > silence_threshold:
-                if not recording:
-                    print("检测到声音，开始录音...")
-                    recording = True
-
-                last_active_time = time.ticks_ms()
-                print(f"last_active_time: {last_active_time}")
-
-            if recording:
-                recorded_data.extend(read_buffer[:read_len])
-
-                if time.ticks_diff(time.ticks_ms(), last_active_time) > silence_duration * 1000:
-                    print("检测到静音，录音结束。")
-                    recording = False
-                    print(f"current_time: {time.ticks_ms()}")
-                    break
-
+        # 稍作延迟，降低 CPU 占用
+        time.sleep(0.1)
     except Exception as e:
         print("读取错误:", e)
         break
-
-# 保存录音为 WAV 文件
-if recorded_data:
-    print("正在保存 WAV 文件...")
-    wav_header = generate_wav_header(sample_rate, bits_per_sample, num_channels, len(recorded_data))
-
-    file_name = "recording.wav"
-    with open(file_name, "wb") as wav_file:
-        wav_file.write(wav_header)
-        wav_file.write(recorded_data)
-
-    print(f"WAV 文件已保存: {file_name}")
-else:
-    print("未检测到有效音频，未保存文件。")
