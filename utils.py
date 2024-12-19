@@ -11,5 +11,5 @@ def get_current_time():
     minute = current_time[5]
     second = current_time[6]
 
-    # 打印时分秒
-    print("当前时间是：{}:{}:{}".format(hour, minute, second))
+    # 返回当前时间，格式为：时:分:秒
+    return f"{hour}:{minute}:{second}"

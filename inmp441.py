@@ -1,8 +1,11 @@
 from machine import I2S, Pin
 # from ulab import numpy as np
-import time
-import struct
 import numpy as np
+import time
+import utils
+import minimax_speech
+import ali_speech_recognizer
+import _thread
 
 audio_in = None
 
@@ -44,7 +47,7 @@ read_buffer = bytearray(frame_samples * bytes_per_sample)
 recorded_data = bytearray()
 
 silence_threshold = 1500  # 静音阈值，样本绝对值低于此值认为是静音
-silence_duration = 1.2  # 静音持续时间（秒）
+silence_duration = 1.0  # 静音持续时间（秒）
 
 recording = False  # 是否在录音
 
@@ -58,22 +61,28 @@ def i2s_callback(i2s):
     # 计算当前帧是否为静音
     audio_data = np.frombuffer(read_buffer, dtype=np.int16)
     temp = np.max(audio_data)
-    print(temp)
+    # print(temp)
     if temp > silence_threshold:
         if not recording:
-            print("检测到声音，开始录音...")
+            print(f"检测到声音，开始录音... 时间: {utils.get_current_time()}")
             recording = True
 
         last_active_time = time.ticks_ms()
-        print(f"last_active_time: {last_active_time}")
+        #print(f"last_active_time: {last_active_time}")
 
     if recording:
         recorded_data.extend(read_buffer)
 
         if time.ticks_diff(time.ticks_ms(), last_active_time) > silence_duration * 1000:
-            print("检测到静音，录音结束。")
+            print(f"检测到静音，录音结束。时间: {utils.get_current_time()}")
             recording = False
-            print(f"current_time: {time.ticks_ms()}")
+            _thread.start_new_thread(get_tts, ())
 
 
-
+def get_tts():
+    global recorded_data
+    text = ali_speech_recognizer.speech_recognizer(recorded_data)
+    recorded_data = bytearray()
+    print(f"获取录音识别结果: [{text}]，开始请求语音，时间: {utils.get_current_time()}")
+    if text:
+        minimax_speech.tts_mrequest(text)
