@@ -35,7 +35,7 @@ def speech_recognizer(audio_data: bytearray):
 
     # 请求头
     headers = {
-        "X-NLS-Token": "43b5b318e21848ceb7aafa7c906db979",
+        "X-NLS-Token": "fdbefb4f271b4acaa709d4cb7dc8a2d7",
     }
 
     # 读取音频文件为二进制流
