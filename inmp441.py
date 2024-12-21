@@ -1,10 +1,10 @@
 from machine import I2S, Pin
-# from ulab import numpy as np
+#from ulab import numpy as np
 import numpy as np
 import time
 import utils
 import minimax_speech
-import ali_speech_recognizer
+from ChatAssistant import ali_speech_recognizer
 import _thread
 
 audio_in = None
@@ -68,7 +68,7 @@ def i2s_callback(i2s):
             recording = True
 
         last_active_time = time.ticks_ms()
-        #print(f"last_active_time: {last_active_time}")
+        # print(f"last_active_time: {last_active_time}")
 
     if recording:
         recorded_data.extend(read_buffer)
@@ -76,6 +76,7 @@ def i2s_callback(i2s):
         if time.ticks_diff(time.ticks_ms(), last_active_time) > silence_duration * 1000:
             print(f"检测到静音，录音结束。时间: {utils.get_current_time()}")
             recording = False
+            minimax_speech.is_audio_playing = True
             _thread.start_new_thread(get_tts, ())
 
 
@@ -86,3 +87,6 @@ def get_tts():
     print(f"获取录音识别结果: [{text}]，开始请求语音，时间: {utils.get_current_time()}")
     if text:
         minimax_speech.tts_mrequest(text)
+    else:
+        minimax_speech.is_audio_playing = False
+        print("识别结果为空，结束执行。")

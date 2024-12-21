@@ -1,9 +1,24 @@
 import urequests
-
+from config import FAST_LLM_BASE_URL
 
 # 阿里云 - 智能语音交互 - 一句话识别
 # https://help.aliyun.com/zh/isi/developer-reference/restful-api-2?spm=a2c4g.11186623.help-menu-30413.d_3_0_0_1.474c20d0l0xH8I
 # https://makeblock-micropython-api.readthedocs.io/en/latest/public_library/Third-party-libraries/urequests.html
+
+nls_token = ""
+
+
+def get_token():
+    global nls_token
+
+    url = f"{FAST_LLM_BASE_URL}/tts/ali/token"
+    response = urequests.get(url)
+    if response.status_code == 200:
+        nls_token = response.json().get("data")
+        print("Speech recognizer token:", nls_token)
+    else:
+        print("Request failed. Status: {}".format(response.status_code))
+
 
 def build_url_with_params(base_url, params):
     """
@@ -20,7 +35,7 @@ def build_url_with_params(base_url, params):
     return full_url
 
 
-def speech_recognizer(audio_data: bytearray):
+def speech_recognizer(audio_data: bytearray) -> str:
     # 阿里云ASR接口地址
     url = "https://nls-gateway-cn-shanghai.aliyuncs.com/stream/v1/asr"
 
@@ -35,7 +50,7 @@ def speech_recognizer(audio_data: bytearray):
 
     # 请求头
     headers = {
-        "X-NLS-Token": "fdbefb4f271b4acaa709d4cb7dc8a2d7",
+        "X-NLS-Token": nls_token,
     }
 
     # 读取音频文件为二进制流
@@ -58,6 +73,7 @@ def speech_recognizer(audio_data: bytearray):
             return response.json().get("result")
         else:
             print(f"Speech recognizer error: {response.status_code}, {response.text}")
+            return ""
 
     except Exception as e:
         print(f"An error occurred: {e}")

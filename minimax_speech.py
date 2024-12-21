@@ -1,6 +1,7 @@
 import urequests
 import ubinascii
 from mrequests import mrequests
+from config import FAST_LLM_BASE_URL
 import utils
 import max98357a
 
@@ -9,9 +10,9 @@ api_key = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJHcm91cE5hbWUiOiLlsbHkuJzpnZLp
 
 url = f"https://api.minimax.chat/v1/t2a_v2?GroupId={group_id}"
 
-fast_llm_url = "http://192.168.1.46:8086"
-
 buf = bytearray(1024)
+
+is_audio_playing = False
 
 
 class ResponseWithProgress(mrequests.Response):
@@ -26,12 +27,13 @@ class ResponseWithProgress(mrequests.Response):
 
 
 def tts_mrequest(text: str):
+    global is_audio_playing
     if not text:
         return
 
     encoded_text = text.encode("utf-8")
     encoded_base64 = ubinascii.b2a_base64(encoded_text)
-    url = f"{fast_llm_url}/tts/question?question={encoded_base64.hex()}"
+    url = f"{FAST_LLM_BASE_URL}/tts/question?question={encoded_base64.hex()}"
 
     r = mrequests.get(url, headers={b"accept": b"audio/pcm"}, response_class=ResponseWithProgress)
 
@@ -44,7 +46,8 @@ def tts_mrequest(text: str):
 
         filename = "recording.wav"
         r.save(filename, buf=buf)
-        #print("Audio saved to '{}'.".format(filename))
+        # print("Audio saved to '{}'.".format(filename))
+        is_audio_playing = False
         print(f"语音结束，时间: {utils.get_current_time()}")
     else:
         print("Request failed. Status: {}".format(r.status_code))
@@ -58,7 +61,7 @@ def tts_bytes(text: str):
 
     encoded_text = text.encode("utf-8")
     encoded_base64 = ubinascii.b2a_base64(encoded_text)
-    url = f"{fast_llm_url}/tts/question?question={encoded_base64.hex()}"
+    url = f"{FAST_LLM_BASE_URL}/tts/question?question={encoded_base64.hex()}"
 
     response = urequests.get(url)
     if response.status_code == 200:
@@ -78,7 +81,7 @@ def tts_data(text: str):
 
     data = '{"text":"' + encoded_base64.hex() + '"}'
 
-    response = urequests.post(f"{fast_llm_url}/tts/text", data=data)
+    response = urequests.post(f"{FAST_LLM_BASE_URL}/tts/text", data=data)
     parsed_json = response.json()
     return parsed_json['data']
 
@@ -89,7 +92,7 @@ def tts_bytes_mqtt(text: str):
 
     encoded_text = text.encode("utf-8")
     encoded_base64 = ubinascii.b2a_base64(encoded_text)
-    url = f"{fast_llm_url}/tts/mqtt?question={encoded_base64.hex()}"
+    url = f"{FAST_LLM_BASE_URL}/tts/mqtt?question={encoded_base64.hex()}"
 
     response = urequests.get(url)
     if response.status_code == 200:

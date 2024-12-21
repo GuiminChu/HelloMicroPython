@@ -5,6 +5,7 @@ import max98357a
 import inmp441
 from wifi import Wifi
 import minimax_speech
+import ali_speech_recognizer
 
 max98357a.init_player()
 inmp441.init_recorder()
@@ -12,6 +13,7 @@ inmp441.init_recorder()
 is_connected = Wifi.do_connect()
 if is_connected:
     print('wifi connected')
+    ali_speech_recognizer.get_token()
 
     while True:
         # print('程序运行中')
