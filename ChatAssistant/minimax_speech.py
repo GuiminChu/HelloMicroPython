@@ -4,7 +4,8 @@ from config import FAST_LLM_BASE_URL
 import utils
 import max98357a
 import ali_speech_recognizer
-import oled_091
+import inmp441
+import time
 
 group_id = '1810541336101667762'
 api_key = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJHcm91cE5hbWUiOiLlsbHkuJzpnZLpuJ_lt6XkuJrkupLogZTnvZHmnInpmZDlhazlj7giLCJVc2VyTmFtZSI6IuWxseS4nOmdkum4n-W3peS4muS6kuiBlOe9keaciemZkOWFrOWPuCIsIkFjY291bnQiOiIiLCJTdWJqZWN0SUQiOiIxODEwNTQxMzM2MTEwMDU2MzcwIiwiUGhvbmUiOiIxODY3ODg4NjYzOCIsIkdyb3VwSUQiOiIxODEwNTQxMzM2MTAxNjY3NzYyIiwiUGFnZU5hbWUiOiIiLCJNYWlsIjoiIiwiQ3JlYXRlVGltZSI6IjIwMjQtMTItMTcgMDk6NDE6MzMiLCJUb2tlblR5cGUiOjEsImlzcyI6Im1pbmltYXgifQ.GUnpt8amhnKr4myiuN9-KsEwvUYVHExk3mBxPioqlp4qkXR9X8rzC0KHhjgrGmVOCwJ7P4ZNJy86SaPnXdvXdfJCyo0bqU0zJv-LHYmYAd42wl_-VHQ8DNQPQES1u2w5_u3xx49Jl2tffy9M7VhntolGS3dkWw6rZ8rLuNaUVW2F9rdvn330yljs0P0YWo6H7zCWrH8_gGErva1cl_eMlq3saUBWVZsAFwHCmDOSPjfEms201RTQqAMlnMEnJkt74FQG1iBHCLyOd8t4fa84Nn0aFgJeOABaXFS0y2UGaCiQPvKG1BbcJ7Ntu6lzWwSLsLUGLbWUXchWwijlGYteyw'
@@ -45,6 +46,7 @@ def tts_mrequest(url: str, text: str):
         r.save(filename, buf=buf)
         # print("Audio saved to '{}'.".format(filename))
         is_audio_playing = False
+        inmp441.last_play_time = time.ticks_ms()
         print(f"语音结束，时间: {utils.get_current_time()}")
     else:
         print("Request failed. Status: {}".format(r.status_code))

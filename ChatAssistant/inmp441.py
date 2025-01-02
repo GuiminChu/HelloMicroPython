@@ -55,13 +55,15 @@ silence_threshold = 1500  # 静音阈值，样本绝对值低于此值认为是�
 silence_duration = 1.0  # 静音持续时间（秒）
 
 recording = False  # 是否在录音
+is_wake_up = False  # 是否唤醒
 
 last_active_time = time.ticks_ms()
+last_play_time = None
 
 
 # 事件回调函数
 def i2s_callback(i2s):
-    global recording, last_active_time, recorded_data
+    global recording, is_wake_up, last_active_time, last_play_time, recorded_data
 
     # 计算当前帧是否为静音
     audio_data = np.frombuffer(read_buffer, dtype=np.int16)
@@ -74,6 +76,12 @@ def i2s_callback(i2s):
 
         last_active_time = time.ticks_ms()
         # print(f"last_active_time: {last_active_time}")
+    else:
+        if last_play_time and not minimax_speech.is_audio_playing and not recording:
+            if time.ticks_diff(time.ticks_ms(), last_play_time) > silence_duration * 5000:
+                last_play_time = None
+                is_wake_up = False
+                print(f"检测到5秒静音，唤醒退出。时间: {utils.get_current_time()}")
 
     if recording:
         recorded_data.extend(read_buffer)
